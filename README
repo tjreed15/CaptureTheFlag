@@ -1,0 +1,38 @@
+Server -> Client Protocol:
+	- init {
+		team: num, 
+		captain: bool,
+		creator: bool,
+		width: num,
+		height: num,
+		visible_distance: num,
+		contact_distance: num,
+		jail_time: num
+	}
+	- start
+	- player {
+		pos: [x, y],
+		visible: [
+			{
+				type: 'flag' or 'player',
+				team: num, 
+				pos: [x, y]
+			},
+			...
+		],
+		has_flag: bool
+	}
+	- over {
+		team: num
+	}
+	- error {
+		msg: string
+	}
+
+
+Client -> Server Protocol:
+	- start
+	- move {
+		x: num,
+		y: num
+	}
