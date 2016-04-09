@@ -1,1 +1,1 @@
-web: python ./server/server.py 5555
+web: python ./server/server.py

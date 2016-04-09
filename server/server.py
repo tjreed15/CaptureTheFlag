@@ -16,6 +16,7 @@ from thread import *
 from capture import Capture
 from player import Player
 import json
+import os
 
 """ Constants """
 DEFAULT_PORT = 5555
