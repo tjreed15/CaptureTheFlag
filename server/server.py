@@ -18,7 +18,7 @@ from player import Player
 import json
 
 """ Constants """
-# None
+DEFAULT_PORT = 5555
 
 """ Globals """
 GAME = Capture()
@@ -90,12 +90,8 @@ def client_thread(conn):
 
 
 if __name__ == '__main__':
-	# Check args: python server.py PORT 
-	if not len(sys.argv) in [2]:
-		print 'Usage: python {} PORT'.format(sys.argv[0])
-		sys.exit(1)
 	host = ''
-	port = int(sys.argv[1])
+	port = int(os.environ.get("PORT", DEFAULT_PORT))
 	
 
 	# Create socket, bind to local host and given port, and listen
