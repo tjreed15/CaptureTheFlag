@@ -14,8 +14,6 @@ class Player:
 class Window(Tk):
 
 	''' Constants '''
-	CANVAS_WIDTH_RATIO = 0.8
-	CANVAS_HEIGHT_RATIO = 0.8
 	PLAYER_RADIUS = 5
 	VISIBLE_RADIUS = 50
 	BG_COLOR = 'grey'
@@ -28,7 +26,7 @@ class Window(Tk):
 		self.sock = sock
 
 		# Make screen full size
-		self.config(width=self.winfo_screenwidth(), height=self.winfo_screenheight())
+		self.config(width=self.winfo_screenwidth()-1, height=self.winfo_screenheight()-1)
 
 		# Bind key events
 		self.bind('<Left>', self.leftKey)
@@ -52,31 +50,40 @@ class Window(Tk):
 	# Empty canvas, resize if user has resized window
 	def reset_canvas(self):
 		self.canvas.delete(ALL)
-		self.canvas.config(width=self.winfo_width(), height=self.winfo_height())
-		self.canvas.grid()
+		# self.canvas.grid()
 
 	# TODO: Change this method to add start button
-	def allow_to_start(self):
-		self.bind('<space>', lambda event: self.start_game())
-	# # Create frame with start button
-	# def wait_for_players(self, creator):
-	# 	if creator:
-	# 		self.reset_canvas()
-	# 		start_button = Button(self, text='Start', command=self.start_game)
-	# 		start_button.place(x=50, y=50)
-	# 	# TODO: Add text saying waiting for players
+	def set_start_data(self, creator, width, height, visible_dist, contact_dist):
+		if creator:
+			self.bind('<space>', lambda event: self.start_game())
+		self.field_width = width
+		self.field_height = height
+		self.visible_dist = visible_dist
+		self.contact_dist = contact_dist
 
 
 	# Loop through visible players/flags and draw them
-	# TODO: change display if player has flag
+	# TODO: change display if player has flag or is in jail
 	def display(self, pos, team, visible, has_flag):
 		self.reset_canvas()
 
+		# Set offset to draw objects at (center on screen)
+		self.offset_x = (self.winfo_width() - self.field_width) / 2
+		self.offset_y = (self.winfo_height() - self.field_height) / 2
+
+		# Draw bounds of field & midline
+		self._draw_rect(self.field_width/2, self.field_height/4, self.field_width, 
+			self.field_height/2, fill=Window.TEAM_COLORS[0])
+		self._draw_rect(self.field_width/2, 3*self.field_height/4, self.field_width, 
+			self.field_height/2, fill=Window.TEAM_COLORS[1])
+
+		# If in jail, dont show anything else
+		if not pos or pos[0] < 0 or pos[1] < 0:
+			return
+
 		# Draw the player/visible area to the screen 
-		self.canvas.create_oval(pos[0]-Window.VISIBLE_RADIUS, pos[1]-Window.VISIBLE_RADIUS, 
-			pos[0]+Window.VISIBLE_RADIUS, pos[1]+Window.VISIBLE_RADIUS, fill=Window.VISIBLE_COLOR)
-		self.canvas.create_oval(pos[0]-Window.PLAYER_RADIUS, pos[1]-Window.PLAYER_RADIUS, 
-			pos[0]+Window.PLAYER_RADIUS, pos[1]+Window.PLAYER_RADIUS, fill=Window.TEAM_COLORS[team])
+		self._draw_oval(pos[0], pos[1], self.visible_dist, fill=Window.VISIBLE_COLOR)
+		self._draw_oval(pos[0], pos[1], self.contact_dist, fill=Window.TEAM_COLORS[team])
 
 		# Draw other visible objects
 		for item in visible:
@@ -86,11 +93,9 @@ class Window(Tk):
 			y = item['pos'][1]
 			team = item['team']
 			if typ == 'player':
-				self.canvas.create_oval(x-Window.PLAYER_RADIUS, y-Window.PLAYER_RADIUS, 
-					x+Window.PLAYER_RADIUS, y+Window.PLAYER_RADIUS, fill=Window.TEAM_COLORS[team])
+				self._draw_oval(x, y, self.contact_dist, fill=Window.TEAM_COLORS[team])
 			elif typ == 'flag':
-				self.canvas.create_rectangle(x-Window.PLAYER_RADIUS, y-Window.PLAYER_RADIUS, 
-					x+Window.PLAYER_RADIUS, y+Window.PLAYER_RADIUS, fill=Window.TEAM_COLORS[team])
+				self._draw_rect(x, y, self.contact_dist, self.contact_dist, fill=Window.TEAM_COLORS[team])
 
 
 	# Bring the window to the front
@@ -109,15 +114,25 @@ class Window(Tk):
 
 	# Send request to move player up
 	def upKey(self, event):
-		self.sock.send('move {}\n'.format(json.dumps({'x': 0, 'y': 1})))
+		self.sock.send('move {}\n'.format(json.dumps({'x': 0, 'y': -1})))
 
 	# Send request to move player down
 	def downKey(self, event):
-		self.sock.send('move {}\n'.format(json.dumps({'x': 0, 'y': -1})))
+		self.sock.send('move {}\n'.format(json.dumps({'x': 0, 'y': 1})))
 
 	# Send request to start game
 	def start_game(self):
 		self.sock.send('start\n')
+
+	def _draw_oval(self, x, y, r, *args, **kwargs):
+		x += self.offset_x
+		y += self.offset_y
+		self.canvas.create_oval(x-r, y-r, x+r, y+r, *args, **kwargs)
+
+	def _draw_rect(self, x, y, w, h, *args, **kwargs):
+		x += self.offset_x
+		y += self.offset_y
+		self.canvas.create_rectangle(x-w/2, y-h/2, x+w/2, y+h/2, *args, **kwargs)
 
 
 def main():

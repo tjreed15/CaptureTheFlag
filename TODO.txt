@@ -1,0 +1,3 @@
+TODO:
+1. Change client waiting to add start button (not just space button)
+2. Change client display if player has flag or is in jail

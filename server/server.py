@@ -49,14 +49,20 @@ def join_game(player):
 	global GAME
 	return GAME.add_player(player)
 
+
 def wait_for_start(player, conn):
 	while not GAME.started: 
-		if player.creator:
-			available, data = recieve_data(conn)
-			if available:
-				cmd, data = decode_message(data)
-				if cmd == 'start':
-					GAME.start()
+		available, data = recieve_data(conn)
+		if available:
+			cmd, data = decode_message(data)
+			if player.creator and cmd == 'start':
+				GAME.start()
+			elif cmd == '':
+				print 'Player Disconnected: ' + player.ip + ':' + player.port
+				if player.creator:
+					print "Game reset"
+					GAME.__init__()
+				sys.exit(0)
 
 
 def play_game(player, conn):
@@ -66,28 +72,44 @@ def play_game(player, conn):
 			cmd, data = decode_message(data)
 			if cmd == 'move':
 				player.request_move(int(data['x']), int(data['y']))
+			elif cmd == '':
+				print 'Player Disconnected: ' + player.ip + ':' + player.port
+				sys.exit(0)
 
 # Function for handling connections. This will be used to create threads
-def client_thread(conn):
-	# Create this player
-	player = Player(conn)
+def client_thread(conn, ip, port):
+	try:
+		# Create this player
+		player = Player(conn, ip, port)
 
-	# Attempt to join the game
-	if not join_game(player):
+		# Attempt to join the game
+		if not join_game(player):
+			conn.close()
+			sys.exit(0)
+
+		# Wait until creator starts the game
+		wait_for_start(player, conn)
+
+		# Clear all messages that were sent while waiting for start
+		recieve_data(conn)
+
+		# During gameplay
+		play_game(player, conn)
+
+		# Close connection when game is over
 		conn.close()
-		sys.exit(0)
+	except Exception as e:
+		print e
+		# If this player is the last in the game, reset the game
+		print 'Disconnected with: ' + ip + ':' + port
+		global GAME
+		if len(GAME.teams[0]) + len(GAME.teams[1]) == 1:
+			GAME.__init__()
 
-	# Wait until creator starts the game
-	wait_for_start(player, conn)
+		# Close connection and exit 
+		conn.close()
+		sys.exit(1)
 
-	# Clear all messages that were sent while waiting for start
-	recieve_data(conn)
-
-	# During gameplay
-	play_game(player, conn)
-	 
-	# Close connection when game is over
-	conn.close()
 
 
 if __name__ == '__main__':
@@ -98,6 +120,7 @@ if __name__ == '__main__':
 	# Create socket, bind to local host and given port, and listen
 	try:
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		s.bind((host, port))
 		s.listen(10)
 		s.setblocking(False)
@@ -115,7 +138,7 @@ if __name__ == '__main__':
 			print 'Connected with ' + addr[0] + ':' + str(addr[1])
 		 
 			# start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-			start_new_thread(client_thread, (conn,))
+			start_new_thread(client_thread, (conn, addr[0], str(addr[1])))
 			ALL_CONNECTIONS.append(conn)
 		except socket.error, e:
 			# Should be a blocking call for accept, but need to do

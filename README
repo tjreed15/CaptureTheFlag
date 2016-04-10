@@ -22,10 +22,12 @@ Server -> Client Protocol:
 		],
 		has_flag: bool
 	}
+	- jail
 	- over {
 		team: num
 	}
 	- error {
+		code: num,
 		msg: string
 	}
 

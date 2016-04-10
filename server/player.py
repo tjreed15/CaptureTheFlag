@@ -5,8 +5,10 @@ class Player:
 	VISIBLE_DISTANCE = 50
 	CONTACT_DISTANCE = 5
 
-	def __init__(self, conn):
+	def __init__(self, conn, ip, port):
 		self.conn = conn
+		self.ip = ip
+		self.port = port
 		self.creator = False
 		self.captain = False
 		self.team = -1
@@ -60,12 +62,15 @@ class Player:
 	def get_contact(self, items):
 		touching = []
 		for item in items:
-			if self._dist_sq(item) < self.contact_distance_sq:
+			if self._dist_sq(item) < self.contact_distance_sq and self.team != item.team:
 				touching.append(item)
 		return touching
 
 	def on_own_side(self, xmax, ymax):
-		return self.pos[1] > self.team * ymax/2.0 and  self.pos[1] < (self.team + 1) * ymax/2.0
+		if self.team == 0: 
+			return self.pos[1] < ymax/2
+		else:
+			return self.pos[1] > ymax/2
 
 	def go_to_jail(self):
 		self.pos = [-1, -1]

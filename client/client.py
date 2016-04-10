@@ -33,23 +33,19 @@ class Client:
 			
 			cmd, data = self.decode_message(data)
 			if cmd == 'init':
-				# TODO: Init player
-				print 'initing: ', data['team'], data['captain'], data['creator']
 				self.team = data['team']
-				if data['creator']:
-					self.window.allow_to_start()
-			elif cmd == 'start':
-				# TODO: Start the game
-				print 'start'
+				self.window.set_start_data(data['creator'], data['width'], data['height'],
+					data['visible_distance'], data['contact_distance'])
 			elif cmd == 'player':
-				# TODO: Update view
-				print 'player: ', data['pos'], data['visible'], data['flag']
 				self.window.display(data['pos'], self.team, data['visible'], data['flag'])
+			elif cmd == 'jail':
+				self.window.display(None, self.team, [], False)
 			elif cmd == 'over':
-				# TODO: End animation
 				print 'Winner: Team', data['winner']
 				window.quit()
 			elif cmd == 'error':
+				if data['code'] == 1:
+					self.window.quit()
 				print 'error: ', data['msg']
 
 

@@ -17,10 +17,11 @@ class Capture:
 	
 	def __init__(self):
 		self.teams = [[], []]
-		self.flags = Capture.FLAGS
+		self.flags = list(Capture.FLAGS)
 		self.jail = []
 		self.curr_team = 0
 		self.started = False
+		self.creator = None
 
 	def __str__(self):
 		return 'Game with players:', str(players)
@@ -32,8 +33,11 @@ class Capture:
 			self.teams[self.curr_team].append(player)
 			self.curr_team = int(not self.curr_team)
 		else:
-			error_obj = { 'msg': 'You cannot join the game. It has already started.\n' }
-			conn.sendall('error ' + json.dumps(error_obj))
+			error_obj = { 
+				'msg': 'You cannot join the game. It has already started.\n',
+				'code': 1
+			}
+			player.conn.sendall('error ' + json.dumps(error_obj))
 		return not self.started
 
 	def start(self):
@@ -41,20 +45,21 @@ class Capture:
 		self._send_to_all('start\n')
 		start_new_thread(self.main_loop, ())
 		self.started = True
+		print 'New Game Started'
 
 	# Winner should be a JSON object
 	def game_over(self, team):
-		self.started = False
 		winner = {'winner': team}
 		self._send_to_all('over {}\n'.format(json.dumps(winner)))
+		self.__init__()
 
 	def main_loop(self):
-		while True:
+		while len(self.teams[0]) + len(self.teams[1]) > 0:
 			free_players = set(self.teams[0] + self.teams[1]) - set(self.jail)
 
 			# Update position of all players
 			for player in free_players:
-				player.move(Capture.BOARD_WIDTH-1, Capture.BOARD_HEIGHT-1)
+				player.move(Capture.BOARD_WIDTH, Capture.BOARD_HEIGHT)
 
 				# Check for a winner
 				if player.flag and player.on_own_side(Capture.BOARD_WIDTH, Capture.BOARD_HEIGHT):
@@ -67,7 +72,7 @@ class Capture:
 			flag_lists = []
 			for player in free_players:
 				contact_lists.append(player.get_contact(set(self.teams[int(not player.team)]) - set(self.jail)))
-				flag_lists.append([x for x in player.get_contact(self.flags) if x.team != player.team])
+				flag_lists.append(player.get_contact(self.flags))
 
 			# Calculate who can see whom, send data to each player
 			for i, player in enumerate(free_players):
@@ -89,8 +94,21 @@ class Capture:
 					player.caught_flag(flag_list[0])
 					self.flags.remove(flag_list[0])
 
-				player.set_visibility(set(self.teams[0] + self.teams[1] + self.flags) - set([player]))
-				player.alert()
+				player.set_visibility(set(self.teams[0] + self.teams[1] + self.flags) 
+					- set([player]) - set(self.jail))
+
+				try:
+					# Send data to player
+					player.alert()
+				except:
+					# If connection disrupted, remove player from game
+					self.teams[player.team].remove(player)
+
+					# If no players left, reset the game and end thread
+					if len(self.teams[0]) + len(self.teams[1]) == 0:
+						self.__init__()
+						print 'Game reset'
+						sys.exit(1)
 
 			# For all players in jail, countdown until they can leave
 			for player in self.jail:
@@ -100,6 +118,11 @@ class Capture:
 
 			# Pause for set time
 			time.sleep(Capture.WAIT_TIME)
+
+		# If all players have quit the game
+		self.__init__()
+		print 'Game reset'
+		sys.exit(0)
 
 
 	# Msg should already be formatted as 'cmd[ {JSON}]'
@@ -115,6 +138,5 @@ class Capture:
 				x = (j + 0.5) * 1.0/n_players * Capture.BOARD_WIDTH
 				y = i * Capture.BOARD_HEIGHT + (1-2*i) * Player.CONTACT_DISTANCE
 				player.pos = [x, y]
-
 
 
