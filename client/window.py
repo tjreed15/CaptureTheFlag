@@ -42,7 +42,6 @@ class Window(Tk):
 		self.canvas = Canvas(self, width=self.winfo_width(), height=self.winfo_height(), 
 			borderwidth=1, highlightthickness=0, bg=Window.BG_COLOR)
 		self.canvas.pack(fill='both', expand=True)
-		self.player = Player(self.winfo_width()/2, self.winfo_height()/2)
 
 		# Move window to the front
 		self.bring_to_front()
@@ -88,14 +87,12 @@ class Window(Tk):
 		# Draw other visible objects
 		for item in visible:
 			item = json.loads(item)
-			typ = item['type']
-			x = item['pos'][0]
-			y = item['pos'][1]
-			team = item['team']
-			if typ == 'player':
-				self._draw_oval(x, y, self.contact_dist, fill=Window.TEAM_COLORS[team])
-			elif typ == 'flag':
-				self._draw_rect(x, y, self.contact_dist, self.contact_dist, fill=Window.TEAM_COLORS[team])
+			if item['type'] == 'player':
+				self._draw_oval(item['pos'][0], item['pos'][1], item['size'], 
+					fill=Window.TEAM_COLORS[item['team']])
+			elif item['type'] == 'flag':
+				self._draw_rect(item['pos'][0], item['pos'][1], item['size']*2, 
+					item['size']*2, fill=Window.TEAM_COLORS[item['team']])
 
 
 	# Bring the window to the front

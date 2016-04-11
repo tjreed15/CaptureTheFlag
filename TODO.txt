@@ -1,3 +1,27 @@
 TODO:
+0.5. Fix flag (inscribed circle -> inscribed rect)
 1. Change client waiting to add start button (not just space button)
 2. Change client display if player has flag or is in jail
+
+
+Future Improvements:
+1. Allow multiple games at once
+2. Allow Users to choose abilities
+	- Speed, visibility, size, turns_in_jail, endurance (when sprint is added), defense
+3. Timeout players from tagging (allow 1 tag every x seconds)
+4. Timeout players from flag guarding (allow in area near flag every x seconds)
+5. Allow players a short time to sprint
+6. Allow the game to be played back (replay the game at faster speed)
+
+
+Far future:
+1. Allow users to log in
+2. Allow users to reconnect to a game (as per their log in info)
+3. Keep track of wins/losses (per team and per user)
+4. Make terrain (mountains, walls, water)
+
+
+Look into:
+1. Move to different framework
+	- Node.js
+	- WSGI

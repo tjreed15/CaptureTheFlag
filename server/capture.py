@@ -10,7 +10,11 @@ class Capture:
 
 	BOARD_WIDTH = 400.0
 	BOARD_HEIGHT = 400.0
-	FLAGS = [Flag(0, 0, 0), Flag(1, BOARD_WIDTH, BOARD_HEIGHT)]
+	FLAGS = [
+		Flag(0, Flag.CONTACT_DISTANCE, Flag.CONTACT_DISTANCE),
+		Flag(1, BOARD_WIDTH-Flag.CONTACT_DISTANCE, 
+			 	BOARD_HEIGHT-Flag.CONTACT_DISTANCE)
+	]
 	WAIT_TIME = 0.05
 	N_TURNS_IN_JAIL = 100 # 5 Seconds
 	MOVE_DIST = 5
@@ -67,18 +71,11 @@ class Capture:
 					self.game_over(player.team)
 					sys.exit(0)
 
-			# Check contact with other players / flags
-			contact_lists = []
-			flag_lists = []
+			# Check contact/visiblitly with other players / flags
 			for player in free_players:
-				contact_lists.append(player.get_contact(set(self.teams[int(not player.team)]) - set(self.jail)))
-				flag_lists.append(player.get_contact(self.flags))
-
-			# Calculate who can see whom, send data to each player
-			for i, player in enumerate(free_players):
-				# Get lists corrosponding to player
-				contact_list = contact_lists[i]
-				flag_list = flag_lists[i]
+				contact_list = player.set_player_visibility(set(self.teams[0] + self.teams[1]) 
+					- set([player]) -  set(self.jail))
+				flag_list = player.set_flag_visibility(self.flags)
 
 				# Deal with players in contact with other players / flags
 				if contact_list and not player.on_own_side(Capture.BOARD_WIDTH, Capture.BOARD_HEIGHT):
@@ -90,12 +87,10 @@ class Capture:
 						self.flags.append(player.flag)
 						player.flag = None
 
+				# Pickup flag
 				elif flag_list:
 					player.caught_flag(flag_list[0])
 					self.flags.remove(flag_list[0])
-
-				player.set_visibility(set(self.teams[0] + self.teams[1] + self.flags) 
-					- set([player]) - set(self.jail))
 
 				try:
 					# Send data to player

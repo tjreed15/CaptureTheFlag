@@ -16,7 +16,8 @@ Server -> Client Protocol:
 			{
 				type: 'flag' or 'player',
 				team: num, 
-				pos: [x, y]
+				pos: [x, y],
+				size: num
 			},
 			...
 		],
