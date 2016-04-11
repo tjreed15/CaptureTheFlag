@@ -25,7 +25,7 @@ class Window(Tk):
 		Tk.__init__(self)
 		self.sock = sock
 
-		# Make screen full size
+		# Make screen full size (the window grows for somereason without the "-1")
 		self.config(width=self.winfo_screenwidth()-1, height=self.winfo_screenheight()-1)
 
 		# Bind key events

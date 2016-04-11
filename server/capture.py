@@ -133,5 +133,3 @@ class Capture:
 				x = (j + 0.5) * 1.0/n_players * Capture.BOARD_WIDTH
 				y = i * Capture.BOARD_HEIGHT + (1-2*i) * Player.CONTACT_DISTANCE
 				player.pos = [x, y]
-
-

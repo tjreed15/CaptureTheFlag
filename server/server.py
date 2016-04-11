@@ -21,6 +21,9 @@ import os
 """ Constants """
 DEFAULT_PORT = 5555
 
+""" Constants """
+# None
+
 """ Globals """
 GAME = Capture()
 ALL_CONNECTIONS = []
@@ -115,12 +118,13 @@ def client_thread(conn, ip, port):
 if __name__ == '__main__':
 	host = ''
 	port = int(os.environ.get("PORT", DEFAULT_PORT))
-	
+
 
 	# Create socket, bind to local host and given port, and listen
 	try:
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
 		s.bind((host, port))
 		s.listen(10)
 		s.setblocking(False)
