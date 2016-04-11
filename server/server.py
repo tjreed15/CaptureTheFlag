@@ -26,7 +26,6 @@ DEFAULT_PORT = 5555
 
 """ Globals """
 GAME = Capture()
-ALL_CONNECTIONS = []
 
 """
 Returns tuple formatted as follows:
@@ -119,7 +118,6 @@ if __name__ == '__main__':
 	host = ''
 	port = int(os.environ.get("PORT", DEFAULT_PORT))
 
-
 	# Create socket, bind to local host and given port, and listen
 	try:
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -137,13 +135,12 @@ if __name__ == '__main__':
 	# now keep talking with the client
 	while 1:
 		try:
-			#wait to accept a connection - blocking call
+			# Wait to accept a connection - should be blocking call
 			conn, addr = s.accept()
 			print 'Connected with ' + addr[0] + ':' + str(addr[1])
 		 
-			# start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
+			# Keep listening for user input on new thread
 			start_new_thread(client_thread, (conn, addr[0], str(addr[1])))
-			ALL_CONNECTIONS.append(conn)
 		except socket.error, e:
 			# Should be a blocking call for accept, but need to do
 			#  non-blocking socket for recv'ing messages later on
