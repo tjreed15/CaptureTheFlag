@@ -1,6 +1,7 @@
 TODO:
 1. Change client waiting to add start button (not just space button)
 2. Change client display if player has flag or is in jail
+3. Allow client to 'scroll' the view when the world is larger than the screen
 
 
 Future Improvements:

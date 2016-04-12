@@ -1,41 +1,24 @@
-Server -> Client Protocol:
-	- init {
-		team: num, 
-		captain: bool,
-		creator: bool,
-		width: num,
-		height: num,
-		visible_distance: num,
-		contact_distance: num,
-		jail_time: num
-	}
-	- start
-	- player {
-		pos: [x, y],
-		visible: [
-			{
-				type: 'flag' or 'player',
-				team: num, 
-				pos: [x, y],
-				size: num
-			},
-			...
-		],
-		has_flag: bool
-	}
-	- jail
-	- over {
-		team: num
-	}
-	- error {
-		code: num,
-		msg: string
-	}
+This repository contains code for users to play the game of capture the flag. 
+
+To do so, follow these steps:
+	1. Run the server on a remote machine as follows:
+		- python ./server/server.py (port)
+	2. Run as many client instances as desired on seperate machines to connect to the game server:
+		- python ./client/client.py (host-ip) (port)
+	3. In order to start the game, the first client to connect must send the server the 'start' command
+		- In the current build, this is done by pressing the space bar
+	4. Move your player around the board according to the rules described below:
+		- Movement is done via the arrow keys
 
 
-Client -> Server Protocol:
-	- start
-	- move {
-		x: num,
-		y: num
-	}
+Rules:
+	1. Each team starts on their own side of the playing field.
+	2. The goal of the game is to cross into the other team's side, 
+		steal the flag, and return it to their own side.
+	3. If at any point a player is tagged while on the opposing team's side,
+		that player will go to jail for a set period of time.
+	4. Upon being released from jail, the player returns to their own side
+		of the field and resumes play as normal.
+	5. Gameplay continues until a player from either team wins the game by
+		successfully crossing the midway line while in possession of the 
+		opponent's flag.

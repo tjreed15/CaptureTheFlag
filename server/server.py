@@ -115,8 +115,16 @@ def client_thread(conn, ip, port):
 
 
 if __name__ == '__main__':
+	# To get port from env var:
+	# port = int(os.environ.get("PORT", DEFAULT_PORT))
+
+	# Instead of env var, get port from CLAs
+	if not len(sys.argv) in [2]:
+		print 'Usage: python {} PORT'.format(sys.argv[0])
+		sys.exit(1)
+
 	host = ''
-	port = int(os.environ.get("PORT", DEFAULT_PORT))
+	port = int(sys.argv[1])
 
 	# Create socket, bind to local host and given port, and listen
 	try:

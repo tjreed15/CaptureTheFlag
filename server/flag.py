@@ -3,7 +3,7 @@ import json
 class Flag:
 
 	''' Constants '''
-	CONTACT_DISTANCE = 50
+	CONTACT_DISTANCE = 5
 
 	def __init__(self, team, x, y):
 		self.team = team
